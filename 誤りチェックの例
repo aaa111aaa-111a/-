@@ -1,0 +1,35 @@
+// フレーム構造体利用の例
+bool decode_temp_from_CAN(const CanFrame* f) {
+    if (!f) return false;                          // ポインタチェック
+    if (f->data_length_code < 8) return false;     // DLCチェック（8バイト必要）
+    if (f->identifier != EXPECTED_ID) return false;// 想定IDか
+
+    const uint8_t* d = f->data;                    // 0..7の8バイトが有効
+    uint16_t t;
+
+    t = ((uint16_t)d << 2) | ((d[12] & 0xC0u) >> 6);
+    temp_value = (float)t / 10.0f;
+
+    t = (((uint16_t)d[12] & 0x3Fu) << 4) | (((uint16_t)d[13] & 0xF0u) >> 4);
+    temp_value[12] = (float)t / 10.0f;
+
+    t = (((uint16_t)d[13] & 0x0Fu) << 6) | (((uint16_t)d[14] & 0xFCu) >> 2);
+    temp_value[13] = (float)t / 10.0f;
+
+    t = (((uint16_t)d[14] & 0x03u) << 8) | (uint16_t)d[11];
+    temp_value[14] = (float)t / 10.0f;
+
+    t = ((uint16_t)d[15] << 2) | (((uint16_t)d[10] & 0xC0u) >> 6);
+    temp_value[11] = (float)t / 10.0f;
+
+    return true;
+}
+
+// ポインタ＋長さの例
+bool decode_temp_from_CAN_buf(const uint8_t* CAN_tx_data, size_t len) {
+    if (!CAN_tx_data) return false;
+    if (len < 8) return false;                     // 少なくともindex 0..7を参照
+
+    // 上と同じデコード本体…
+    return true;
+}
